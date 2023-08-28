@@ -13,8 +13,7 @@ public class Player : MonoBehaviour
     [SerializeField] private List<Orb> yellowOrbs = new();
     [SerializeField] private List<Orb> greenOrbs = new();
 
-    [SerializeField] private List<Orb> destinedOrbs = new();
-
+    [SerializeField] private List<Orb> destinedOrbs = new(); //used for green and purple
     private Orb yellowDestinedOrb; //set to null upon new movement
 
     [SerializeField] private List<SpriteRenderer> cones = new();
@@ -74,8 +73,26 @@ public class Player : MonoBehaviour
 
         Orb orb = col.GetComponent<Orb>();
 
-        if (orb.ready || OrbIsDestined(orb))
+        //order orbisdestined first so that orb is removed from destinedorbs whether ready or not
+        if (OrbIsDestined(orb) || orb.ready)
             GetOrb(orb);
+    }
+
+    private bool OrbIsDestined(Orb newOrb)
+    {
+        if (newOrb == yellowDestinedOrb)
+        {
+            yellowDestinedOrb = null;
+            return true;
+        }
+        //orb cannot be both yellow destined and green/purple destined
+        foreach (Orb orb in destinedOrbs)
+            if (newOrb == orb)
+            {
+                destinedOrbs.Remove(orb);
+                return true;
+            }
+        return false;
     }
 
     public void GetOrb(Orb orb) //run by Orb (if red)
@@ -101,17 +118,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    private bool OrbIsDestined(Orb newOrb)
-    {
-        foreach (Orb orb in destinedOrbs)
-            if (newOrb == orb)
-            {
-                destinedOrbs.Remove(orb);
-                return true;
-            }
-        return false;
-    }
-
     private void FireRed()
     {
         if (redOrbs.Count == 0)
@@ -124,7 +130,7 @@ public class Player : MonoBehaviour
 
         Vector2 targetPosition = RedBlueDestination();//maxOrbPosition);
         redOrbs[0].transform.position = transform.position;
-        redOrbs[0].entityMovement.target = targetPosition;
+        redOrbs[0].entityMovement.NewTarget(targetPosition);
 
         redOrbs[0].redPickup = true;
         StartCoroutine(redOrbs[0].Explode());
@@ -147,7 +153,7 @@ public class Player : MonoBehaviour
         blueOrbs[0].transform.position = transform.position;
 
         Vector2 targetPosition = RedBlueDestination();//maxPlayerPosition);
-        entityMovement.target = targetPosition;
+        entityMovement.NewTarget(targetPosition);
 
         StartCoroutine(blueOrbs[0].Explode());
 
@@ -168,12 +174,11 @@ public class Player : MonoBehaviour
         ResetYellowDestinedOrb();
 
         orbMouseOver.ChangeReady(false);
-        destinedOrbs.Add(orbMouseOver);
         yellowDestinedOrb = orbMouseOver; //yellow effect cancels with new movement
 
         yellowOrbs[0].transform.position = transform.position;
 
-        entityMovement.target = orbMouseOver.transform.position;
+        entityMovement.NewTarget(orbMouseOver.transform.position);
 
         StartCoroutine(yellowOrbs[0].Explode());
 
@@ -235,7 +240,6 @@ public class Player : MonoBehaviour
         if (yellowDestinedOrb != null)
         {
             yellowDestinedOrb.ChangeReady(true);
-            destinedOrbs.Remove(yellowDestinedOrb);
             yellowDestinedOrb = null;
         }
     }

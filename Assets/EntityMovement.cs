@@ -7,7 +7,8 @@ public class EntityMovement : MonoBehaviour
 {
     [SerializeField] private bool isPlayer; //false = orb
 
-    [NonSerialized] public Vector2 target;
+    private bool hasTarget;
+    private Vector2 target;
     [NonSerialized] public Transform playerTarget; //used for green and purple orbs
 
     private readonly float threshhold = .2f;
@@ -25,7 +26,7 @@ public class EntityMovement : MonoBehaviour
 
     private void Update()
     {        
-        if (target != default)
+        if (hasTarget)
         {
             Vector2 direction = (target - (Vector2)transform.position).normalized;
 
@@ -50,7 +51,7 @@ public class EntityMovement : MonoBehaviour
             if (Vector2.Distance(transform.position, target) < threshhold)
             {
                 transform.position = target;
-                target = default;
+                Reset();
                 return;
             }
 
@@ -64,9 +65,15 @@ public class EntityMovement : MonoBehaviour
         }
     }
 
-    private void Reset()
+    public void NewTarget(Vector2 newTarget)
     {
-        target = default;
+        target = newTarget;
+        hasTarget = true;
+    }
+
+    public void Reset()
+    {
+        hasTarget = false;
         playerTarget = null;
     }
 }

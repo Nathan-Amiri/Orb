@@ -60,8 +60,7 @@ public class Orb : MonoBehaviour
 
     public void Disappear()
     {
-        entityMovement.target = default;
-        entityMovement.playerTarget = null;
+        entityMovement.Reset();
 
         transform.position = new Vector2(-15, 0);
     }
