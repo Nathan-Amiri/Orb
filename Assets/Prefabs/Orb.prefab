@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3892830676890212965}
   - component: {fileID: 1447451938941874078}
   - component: {fileID: 8831923643612130696}
+  - component: {fileID: -7409988021125050485}
   m_Layer: 0
   m_Name: Orb
   m_TagString: Orb
@@ -101,11 +102,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ece84662f5499a448017ae9ca43ea7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sr: {fileID: 3826755558461271825}
   entityMovement: {fileID: 3892830676890212965}
-  player: {fileID: 0}
   dim: {fileID: 6426373142092320965}
   trigger: {fileID: 8831923643612130696}
-  ready: 0
+  readyAtStart: 0
   color: 0
 --- !u!114 &3892830676890212965
 MonoBehaviour:
@@ -119,7 +120,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7e432b2c1b9c82448f55711eccadc79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  threshhold: 0.1
   isPlayer: 0
 --- !u!50 &1447451938941874078
 Rigidbody2D:
@@ -183,6 +183,26 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &-7409988021125050485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 123111148148288561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 951099334
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &6841313312125674448
 GameObject:
   m_ObjectHideFlags: 0

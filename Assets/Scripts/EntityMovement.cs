@@ -11,13 +11,12 @@ public class EntityMovement : MonoBehaviour
     private Vector2 target;
     [NonSerialized] public Transform playerTarget; //used for green and purple orbs
 
-    private readonly float threshhold = .2f;
-    private readonly float speed = 10;
-
     private readonly Vector2 maxPlayerPosition = new(7.95f, 4.125f);
     private readonly Vector2 maxOrbPosition = new(8.125f, 4.3f);
 
     private Vector2 maxPosition;
+
+    private readonly float speed = 10;
 
     private void Start()
     {
@@ -25,7 +24,7 @@ public class EntityMovement : MonoBehaviour
     }
 
     private void Update()
-    {        
+    {
         if (hasTarget)
         {
             Vector2 direction = (target - (Vector2)transform.position).normalized;
@@ -47,14 +46,6 @@ public class EntityMovement : MonoBehaviour
                     return;
                 }
 
-            //if close enough to the target
-            if (Vector2.Distance(transform.position, target) < threshhold)
-            {
-                transform.position = target;
-                Reset();
-                return;
-            }
-
             //move
             transform.Translate(speed * Time.deltaTime * direction);
         }
@@ -69,6 +60,19 @@ public class EntityMovement : MonoBehaviour
     {
         target = newTarget;
         hasTarget = true;
+
+        StopAllCoroutines();
+        StartCoroutine(SnapToTarget());
+    }
+
+    private IEnumerator SnapToTarget()
+    {
+        float distance = Vector2.Distance(transform.position, target);
+        float duration = distance / speed;
+        yield return new WaitForSeconds(duration);
+
+        Reset();
+        transform.position = target;
     }
 
     public void Reset()

@@ -1,13 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Orb : MonoBehaviour
+public class Orb : NetworkBehaviour
 {
-    public EntityMovement entityMovement; //read by Player
+    //class with non-networked logic
 
-    [SerializeField] private Player player;
+    public SpriteRenderer sr; //used by Setup
+    public EntityMovement entityMovement; //read by Player
 
     [SerializeField] private SpriteRenderer dim;
     [SerializeField] private CircleCollider2D trigger;
@@ -21,7 +23,7 @@ public class Orb : MonoBehaviour
 
     public bool ready { get; private set; }
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
         ready = readyAtStart;
     }
@@ -33,13 +35,13 @@ public class Orb : MonoBehaviour
 
     public void OnMouseOver()
     {
-        player.orbMouseOver = this;
+        PlayerInput.orbMouseOver = this;
     }
 
     public void OnMouseExit()
     {
-        if (player.orbMouseOver == this)
-            player.orbMouseOver = null;
+        if (PlayerInput.orbMouseOver == this)
+            PlayerInput.orbMouseOver = null;
     }
 
     public void ChangeReady(bool readyOn)
@@ -81,6 +83,6 @@ public class Orb : MonoBehaviour
 
         if (!orb.ready) return; //red can't pick up destined orbs
 
-        player.GetOrb(orb);
+        //player.GetOrb(orb);
     }
 }
