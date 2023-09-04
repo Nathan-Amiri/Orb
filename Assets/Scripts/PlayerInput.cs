@@ -6,13 +6,13 @@ using UnityEngine;
 public class PlayerInput : MonoBehaviour
 {
     [SerializeField] private Player player;
-    [SerializeField] private Relay relay;
+    [SerializeField] private InputRelay inputRelay;
 
     [SerializeField] private GameObject dimPivot;
 
     private Vector2 mousePosition;
 
-    private readonly float cooldown = .5f;
+    private readonly float cooldown = .3f;
     private bool onCooldown;
 
     public static Orb orbMouseOver; //set by Orb, does not sync across connections
@@ -28,29 +28,29 @@ public class PlayerInput : MonoBehaviour
             //fire purple if purple
 
             if (Input.GetKeyDown(KeyCode.W))
-                UseAbility(Relay.AbilityColor.red);
+                UseAbility(InputRelay.AbilityColor.red);
             else if (Input.GetKeyDown(KeyCode.S))
-                UseAbility(Relay.AbilityColor.blue);
+                UseAbility(InputRelay.AbilityColor.blue);
             else if (Input.GetKeyDown(KeyCode.A))
-                UseAbility(Relay.AbilityColor.yellow);
+                UseAbility(InputRelay.AbilityColor.yellow);
             else if (Input.GetKeyDown(KeyCode.D))
-                UseAbility(Relay.AbilityColor.green);
+                UseAbility(InputRelay.AbilityColor.green);
         }
         else //if on cooldown
             dimPivot.transform.localScale -= new Vector3(0, 1 / cooldown * Time.deltaTime);
     }
 
-    private void UseAbility(Relay.AbilityColor color)
+    private void UseAbility(InputRelay.AbilityColor color)
     {
         if (player.purple.enabled)
-            color = Relay.AbilityColor.purple;
+            color = InputRelay.AbilityColor.purple;
 
 
-        if (color == Relay.AbilityColor.red || color == Relay.AbilityColor.blue)
-            relay.InputRelayServerRpc(color, mousePosition);
+        if (color == InputRelay.AbilityColor.red || color == InputRelay.AbilityColor.blue)
+            inputRelay.InputRelayServerRpc(color, mousePosition);
         //perform check now to ensure no null networkbehaviour reference is sent
         else if (orbMouseOver != null)
-            relay.InputRelayServerRpc(color, default, orbMouseOver);
+            inputRelay.InputRelayServerRpc(color, default, orbMouseOver);
     }
 
     public IEnumerator StartCooldown() //run by Player

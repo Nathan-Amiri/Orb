@@ -20,7 +20,7 @@ public class Setup : NetworkBehaviour
     {
         //wait until all players have loaded into the scene
         playerIDs.Add(clientId);
-        if (playerIDs.Count != NetworkManager.Singleton.ConnectedClients.Count) return;
+        if (playerIDs.Count != 2) return;// NetworkManager.Singleton.ConnectedClients.Count) return;
 
         foreach (ulong id in playerIDs)
         {
@@ -42,6 +42,7 @@ public class Setup : NetworkBehaviour
     private Orb SpawnOrb(ulong ownerId, Orb.OrbColor orbColor, Color spriteColor)
     {
         GameObject orbObj = Instantiate(orbPref, new Vector2(-15, 0), Quaternion.identity);
+        orbObj.name = orbColor.ToString();
         orbObj.GetComponent<NetworkObject>().SpawnWithOwnership(ownerId, true);
 
         Orb orb = orbObj.GetComponent<Orb>();

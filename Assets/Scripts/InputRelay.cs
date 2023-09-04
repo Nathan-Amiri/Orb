@@ -1,20 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
-public class Relay : NetworkBehaviour
+public class InputRelay : NetworkBehaviour
 {
-    //player networking
-
     public Player player;
 
-    public enum AbilityColor { red, yellow, green, blue, purple}
+    public enum AbilityColor { red, yellow, green, blue, purple }
 
     [ServerRpc(RequireOwnership = false)]
     public void InputRelayServerRpc(AbilityColor color, Vector2 aimPoint = default, NetworkBehaviourReference newTarget = default)
     {
-            //perform necessary checks
+        //perform necessary checks
 
         //if missing aimPoint
         if (color == AbilityColor.red || color == AbilityColor.blue)
@@ -28,7 +26,7 @@ public class Relay : NetworkBehaviour
         //if blue/green/purple target doesn't exist or isn't ready
         else
         {
-            Orb target = GetOrb(newTarget);
+            Orb target = GetFromReference.GetOrb(newTarget);
             if (target == null || !target.ready)
                 return;
         }
@@ -63,18 +61,18 @@ public class Relay : NetworkBehaviour
                 break;
         }
 
-            //send to clients
+        //send to clients
 
         InputRelayClientRpc(color, aimPoint, newTarget);
     }
 
     [ClientRpc]
-    private void InputRelayClientRpc(AbilityColor color, Vector2 aimPoint, NetworkBehaviourReference newTarget)
+    private void InputRelayClientRpc(AbilityColor color, Vector2 aimPoint, NetworkBehaviourReference targetReference)
     {
         Orb target = null;
         if (color != AbilityColor.red && color != AbilityColor.blue)
         {
-            target = GetOrb(newTarget);
+            target = GetFromReference.GetOrb(targetReference);
             if (target == null)
                 return;
         }
@@ -82,19 +80,4 @@ public class Relay : NetworkBehaviour
         player.ReceiveAbility(color, aimPoint, target);
     }
 
-    [ServerRpc (RequireOwnership = false)]
-    public void SensorRelayServerRpc(NetworkBehaviourReference newOrb)
-    {
-
-    }
-
-    private Orb GetOrb(NetworkBehaviourReference reference)
-    {
-        reference.TryGet(out Orb orb);
-
-        if (orb == null)
-            Debug.LogError("Received invalid orb reference");
-
-        return orb;
-    } 
 }

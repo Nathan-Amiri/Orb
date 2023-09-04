@@ -6,17 +6,19 @@ using UnityEngine;
 
 public class Orb : NetworkBehaviour
 {
-    //class with non-networked logic
-
     public SpriteRenderer sr; //used by Setup
     public EntityMovement entityMovement; //read by Player
 
     [SerializeField] private SpriteRenderer dim;
     [SerializeField] private CircleCollider2D trigger;
+    [SerializeField] private Explosion explosion;
 
-    [NonSerialized] public bool redPickup; //true if red and if can currently get orbs
+    //the player that just launched this red orb
+    [NonSerialized] public Player redCaster;
+    //[NonSerialized] public bool redPickup; //true if red and if can currently get orbs
 
     [SerializeField] private bool readyAtStart;
+
 
     public enum OrbColor { red, blue, yellow, green }
     public OrbColor color;
@@ -69,20 +71,53 @@ public class Orb : NetworkBehaviour
 
     public IEnumerator Explode()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(.7f);
+
+        explosion.TurnOnOff(true);
+
+        yield return new WaitForSeconds(.5f);
+
+        explosion.TurnOnOff(false);
         ChangeReady(true);
-        redPickup = false;
+        redCaster = null;
     }
 
+
+
+    //red pickup:
     private void OnTriggerEnter2D(Collider2D col)
     {
-        if (!redPickup) return;
+        Trigger(col);
+    }
+
+    public void Trigger(Collider2D col) //called by Explosion
+    {
+        if (redCaster == null) return;
         if (!col.CompareTag("Orb")) return;
 
         Orb orb = col.GetComponent<Orb>();
 
+        if (!orb.ready) return; //red can't pick up destined orbs (check here and on server)
+
+        RedPickupServerRpc(redCaster, orb);
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    private void RedPickupServerRpc(NetworkBehaviourReference playerReference, NetworkBehaviourReference orbReference)
+    {
+        Orb orb = GetFromReference.GetOrb(orbReference);
+
         if (!orb.ready) return; //red can't pick up destined orbs
 
-        //player.GetOrb(orb);
+        RedPickupClientRpc(playerReference, orb);
+    }
+
+    [ClientRpc]
+    private void RedPickupClientRpc(NetworkBehaviourReference playerReference, NetworkBehaviourReference orbReference)
+    {
+        Orb orb = GetFromReference.GetOrb(orbReference);
+        Player caster = GetFromReference.GetPlayer(playerReference);
+
+        caster.AddOrb(orb);
     }
 }

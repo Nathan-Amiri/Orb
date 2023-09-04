@@ -5,7 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Orb
-  - Relay
+  - MenuScene
+  - GameManager
   layers:
   - Default
   - TransparentFX
@@ -43,9 +44,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Explosion
+    uniqueID: 2489976557
+    locked: 0
   - name: Orb
     uniqueID: 2688777363
     locked: 0
   - name: Player
     uniqueID: 2370242225
+    locked: 0
+  - name: UI
+    uniqueID: 1139563113
     locked: 0

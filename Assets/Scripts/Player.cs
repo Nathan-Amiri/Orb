@@ -18,30 +18,30 @@ public class Player : NetworkBehaviour
     public List<Orb> greenOrbs = new();
 
     [NonSerialized] public readonly List<Orb> destinedOrbs = new(); //read by PlayerSensor, used for green and purple
-    [NonSerialized] public Orb yellowDestinedOrb; //read by playerSensor, set to null upon new movement
+    [NonSerialized] public Orb yellowDestinedOrb; //read/set by playerInput, read by playerSensor, set to null upon new movement
 
     [SerializeField] private List<SpriteRenderer> cones = new();
     public SpriteRenderer purple; //read by PlayerInput
 
     private readonly float redBlueRange = 5;
 
-    public void ReceiveAbility(Relay.AbilityColor color, Vector2 aimPoint, Orb target)
+    public void ReceiveAbility(InputRelay.AbilityColor color, Vector2 aimPoint, Orb target)
     {
         switch (color)
         {
-            case Relay.AbilityColor.red:
+            case InputRelay.AbilityColor.red:
                 FireRed(aimPoint);
                 break;
-            case Relay.AbilityColor.blue:
+            case InputRelay.AbilityColor.blue:
                 FireBlue(aimPoint);
                 break;
-            case Relay.AbilityColor.yellow:
+            case InputRelay.AbilityColor.yellow:
                 FireYellow(target);
                 break;
-            case Relay.AbilityColor.green:
+            case InputRelay.AbilityColor.green:
                 FireGreen(target);
                 break;
-            case Relay.AbilityColor.purple:
+            case InputRelay.AbilityColor.purple:
                 FirePurple(target);
                 break;
         }
@@ -69,7 +69,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void GetOrb(Orb orb) //run by Orb (if red)
+    public void AddOrb(Orb orb) //run by Orb (if red)
     {
         orb.ChangeReady(false);
 
@@ -100,7 +100,7 @@ public class Player : NetworkBehaviour
         redOrbs[0].transform.position = transform.position;
         redOrbs[0].entityMovement.NewTarget(targetPosition);
 
-        redOrbs[0].redPickup = true;
+        redOrbs[0].redCaster = this;
         StartCoroutine(redOrbs[0].Explode());
 
         redOrbs.RemoveAt(0);
