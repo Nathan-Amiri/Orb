@@ -5,8 +5,13 @@ using UnityEngine;
 
 public class Setup : NetworkBehaviour
 {
-    public GameObject playerPref;
-    public GameObject orbPref;
+    //assigned in prefab
+    [SerializeField] private GameObject playerPref;
+    [SerializeField] private GameObject orbPref;
+
+    //assigned in scene
+    [SerializeField] private GameObject waitingForOpponent;
+    [SerializeField] private int requiredConnections;
 
     private readonly List<ulong> playerIDs = new();
 
@@ -20,7 +25,7 @@ public class Setup : NetworkBehaviour
     {
         //wait until all players have loaded into the scene
         playerIDs.Add(clientId);
-        if (playerIDs.Count != 2) return;// NetworkManager.Singleton.ConnectedClients.Count) return;
+        if (playerIDs.Count != requiredConnections) return;
 
         foreach (ulong id in playerIDs)
         {
@@ -36,6 +41,9 @@ public class Setup : NetworkBehaviour
             };
 
             PlayerSetupClientRpc(playerObj.GetComponent<Player>(), orbs);
+
+            if (waitingForOpponent != null)
+                waitingForOpponent.SetActive(false);
         }
     }
 

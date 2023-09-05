@@ -12,6 +12,7 @@ using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
 using UnityEngine;
 using System.Threading.Tasks;
+using System;
 
 public class GameManager : NetworkBehaviour
 {
@@ -19,12 +20,17 @@ public class GameManager : NetworkBehaviour
 
     private Lobby currentLobby;
 
-    public static GameManager instance = null;
+    public static GameManager Instance = null;
+
+    public enum ConnectionStatus { Connecting, Connected, Offline}
+    [NonSerialized] public ConnectionStatus connectionStatus = ConnectionStatus.Connecting;
+
+    private string gameScene; //PracticeScene, ChallengeScene, VersusScene
 
     private void Awake()
     {
-        if (instance == null)
-            instance = this;
+        if (Instance == null)
+            Instance = this;
         else
             Destroy(gameObject);
     }
@@ -51,12 +57,17 @@ public class GameManager : NetworkBehaviour
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
+            connectionStatus = ConnectionStatus.Connected;
+
             //This code only runs at the beginning of the game, so menuScene cannot be null
-            menuScene.Connected();
+            StartCoroutine(menuScene.StartMenu(true));
         }
         catch
         {
-            Debug.Log("Failed to connect");
+            connectionStatus = ConnectionStatus.Offline;
+
+            //This code only runs at the beginning of the game, so menuScene cannot be null
+            StartCoroutine(menuScene.StartMenu(false));
         }
     }
 
@@ -73,12 +84,30 @@ public class GameManager : NetworkBehaviour
         await LobbyService.Instance.SendHeartbeatPingAsync(currentLobby.Id);
     }
 
+    public void PracticeLobby()
+    {
+        gameScene = "PracticeScene";
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public void ChallengeLobby()
+    {
+        gameScene = "ChallengeScene";
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public void VersusLobby()
+    {
+        gameScene = "VersusScene";
+        FindLobby();
+    }
+
     private async void FindLobby()
     {
         try
         {
             QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync(null);
-
+            Debug.Log(queryResponse.Results.Count);
             if (queryResponse.Results.Count > 0) //if a lobby exists
             {
                 if (!queryResponse.Results[0].Data.ContainsKey("JoinCode"))
@@ -110,18 +139,18 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-
     public async void CreateLobby()
     {
         try
         {
-            currentLobby = await LobbyService.Instance.CreateLobbyAsync("NewLobby", 6); //number of players
+            //lobby is public by default
+            currentLobby = await LobbyService.Instance.CreateLobbyAsync("NewLobby", 2); //number of players
 
             Debug.Log("Created Lobby");
 
             StartCoroutine(HandleLobbyHeartbeat());
 
-            Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(5); //number of non-host connections
+            Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(1); //number of non-host connections
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(hostAllocation, "dtls"));
 
             NetworkManager.Singleton.StartHost();
@@ -155,12 +184,24 @@ public class GameManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (menuScene == null)
-            menuScene = GameObject.FindWithTag("MenuScene").GetComponent<MenuScene>();
-        //menuScene.OnConnectedToLobby(IsHost);
+        NetworkManager.Singleton.SceneManager.LoadScene(gameScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
-    public async void ExitGame() //called by ExitGame
+    public void BackToMainMenu() //called by BackToMainMenu
+    {
+        LeaveLobby();
+
+        NetworkManager.Singleton.SceneManager.LoadScene("MenuScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+    }
+
+    public void ExitGame() //called by ExitGame
+    {
+        LeaveLobby();
+
+        Application.Quit();
+    }
+
+    private async void LeaveLobby()
     {
         try
         {
@@ -180,7 +221,5 @@ public class GameManager : NetworkBehaviour
         {
             Debug.Log(e);
         }
-
-        Application.Quit();
     }
 }

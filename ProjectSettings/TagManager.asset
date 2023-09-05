@@ -5,8 +5,6 @@ TagManager:
   serializedVersion: 2
   tags:
   - Orb
-  - MenuScene
-  - GameManager
   layers:
   - Default
   - TransparentFX
@@ -43,6 +41,12 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Border
+    uniqueID: 1979137095
+    locked: 0
+  - name: Background
+    uniqueID: 3660820311
     locked: 0
   - name: Explosion
     uniqueID: 2489976557

@@ -6,6 +6,6 @@ public class ExitGame : MonoBehaviour
 {
     public void SelectExitGame()
     {
-        GameObject.FindWithTag("GameManager").GetComponent<GameManager>().ExitGame();
+        GameManager.Instance.ExitGame();
     }
 }
