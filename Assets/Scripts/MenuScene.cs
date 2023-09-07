@@ -56,7 +56,7 @@ public class MenuScene : MonoBehaviour
     private void ToggleButtonsInteractable(bool interactable)
     {
         practiceButton.interactable = interactable;
-        challengeButton.interactable = interactable;
+        //challengeButton.interactable = interactable;
         versusButton.interactable = interactable && GameManager.Instance.connectionStatus == GameManager.ConnectionStatus.Connected;
     }
 

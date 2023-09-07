@@ -14,6 +14,8 @@ public class InputRelay : NetworkBehaviour
     {
         //perform necessary checks
 
+        if (PlayerInput.stunned) return; //set to true the instant the game ends
+
         //if missing aimPoint
         if (color == AbilityColor.red || color == AbilityColor.blue)
         {

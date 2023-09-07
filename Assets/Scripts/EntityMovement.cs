@@ -31,22 +31,21 @@ public class EntityMovement : MonoBehaviour
 
             //if out of x bounds
             if (Mathf.Abs(transform.position.x) >= maxPosition.x)
-                //if trying to move farther out of bounds
-                if (Mathf.Sign(direction.x) == Mathf.Sign(transform.position.x))
-                {
-                    Reset();
-                    return;
-                }
+            {
+                //snap back to slightly inside bounds
+                transform.position = new Vector2((maxPosition.x - .1f) * Mathf.Sign(transform.position.x), transform.position.y);
+                Reset();
+                return;
+            }
             //if out of y bounds
             if (Mathf.Abs(transform.position.y) >= maxPosition.y)
-                //if trying to move farther out of bounds
-                if (Mathf.Sign(direction.y) == Mathf.Sign(transform.position.y))
-                {
-                    Reset();
-                    return;
-                }
+            {
+                //snap back to slightly inside bounds
+                transform.position = new Vector2(transform.position.x, (maxPosition.y - .1f) * Mathf.Sign(transform.position.y));
+                Reset();
+                return;
+            }
 
-            //move
             transform.Translate(speed * Time.deltaTime * direction);
         }
         else if (playerTarget != null) //playerTarget reset manually
@@ -72,7 +71,6 @@ public class EntityMovement : MonoBehaviour
         yield return new WaitForSeconds(duration);
 
         Reset();
-        transform.position = target;
     }
 
     public void Reset()

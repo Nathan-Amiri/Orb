@@ -10,10 +10,20 @@ public class Setup : NetworkBehaviour
     [SerializeField] private GameObject orbPref;
 
     //assigned in scene
+    [SerializeField] private Overlay overlay;
     [SerializeField] private GameObject waitingForOpponent;
     [SerializeField] private int requiredConnections;
 
+    public enum GameMode { practice, challenge, versus};
+    public static GameMode CurrentGameMode { get; private set; }
+    [SerializeField] private GameMode gameMode; //set in inspector
+
     private readonly List<ulong> playerIDs = new();
+
+    private void Start()
+    {
+        CurrentGameMode = gameMode;
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -27,9 +37,20 @@ public class Setup : NetworkBehaviour
         playerIDs.Add(clientId);
         if (playerIDs.Count != requiredConnections) return;
 
+
         foreach (ulong id in playerIDs)
         {
-            GameObject playerObj = Instantiate(playerPref);
+            Vector2 spawnPosition = Vector2.zero;
+            if (CurrentGameMode == GameMode.versus)
+            {
+                //host spawns on left, client spawns on right
+                if (id == NetworkManager.Singleton.LocalClientId)
+                    spawnPosition = new Vector2(-7, 0);
+                else
+                    spawnPosition = new Vector2(7, 0);
+            }
+
+            GameObject playerObj = Instantiate(playerPref, spawnPosition, Quaternion.identity);
             playerObj.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
 
             NetworkBehaviourReference[] orbs = new NetworkBehaviourReference[4]
@@ -41,9 +62,6 @@ public class Setup : NetworkBehaviour
             };
 
             PlayerSetupClientRpc(playerObj.GetComponent<Player>(), orbs);
-
-            if (waitingForOpponent != null)
-                waitingForOpponent.SetActive(false);
         }
     }
 
@@ -70,6 +88,9 @@ public class Setup : NetworkBehaviour
 
         orb.color = orbColor;
         orb.sr.color = spriteColor;
+
+        if (waitingForOpponent != null)
+            waitingForOpponent.SetActive(false);
     }
 
     [ClientRpc]
@@ -96,5 +117,10 @@ public class Setup : NetworkBehaviour
         player.blueOrbs.Add(orbs[1]);
         player.yellowOrbs.Add(orbs[2]);
         player.greenOrbs.Add(orbs[3]);
+
+        if (CurrentGameMode == GameMode.practice)
+            PlayerInput.stunned = false;
+        else
+            overlay.StartCountdown();
     }
 }

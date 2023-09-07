@@ -17,9 +17,12 @@ public class PlayerInput : MonoBehaviour
 
     public static Orb orbMouseOver; //set by Orb, does not sync across connections
 
+    public static bool stunned = true; //set by Overlay and Explosion
+
     private void Update()
     {
         if (!player.IsOwner) return;
+        if (stunned) return; //check here and in InputRelay
 
         mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 

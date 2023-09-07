@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Unity.Netcode.Transports.UTP;
 using Unity.Netcode;
 using Unity.Networking.Transport.Relay;
@@ -13,6 +12,7 @@ using Unity.Services.Relay;
 using UnityEngine;
 using System.Threading.Tasks;
 using System;
+using UnityEngine.SceneManagement;
 
 public class GameManager : NetworkBehaviour
 {
@@ -107,12 +107,12 @@ public class GameManager : NetworkBehaviour
         try
         {
             QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync(null);
-            Debug.Log(queryResponse.Results.Count);
             if (queryResponse.Results.Count > 0) //if a lobby exists
             {
-                if (!queryResponse.Results[0].Data.ContainsKey("JoinCode"))
+                if (queryResponse.Results[0].Data == null || !queryResponse.Results[0].Data.ContainsKey("JoinCode"))
                 {
-                    //JoinCode is created when player is connected to relay. It's possible to join the lobby before the relay connection
+                    //Data is null when no data values exist, such as a JoinCode
+                    //JoinCode is created when host is first connected to relay. It's possible to join the lobby before the relay connection
                     //is established and before JoinCode is created
                     Debug.Log("Lobby is still being created, trying again in 2 seconds");
                     Invoke(nameof(FindLobby), 2);
@@ -184,14 +184,25 @@ public class GameManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        NetworkManager.Singleton.SceneManager.LoadScene(gameScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        ListenForClientDisconnect();
+
+        if (IsServer)
+            NetworkManager.Singleton.SceneManager.LoadScene(gameScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     public void BackToMainMenu() //called by BackToMainMenu
     {
         LeaveLobby();
-
-        NetworkManager.Singleton.SceneManager.LoadScene("MenuScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        StartCoroutine(WaitForShutdown());
+    }
+    private IEnumerator WaitForShutdown()
+    {
+        //delaying the scene change gives time for the shutdown to occur. A temporary solution
+        //for a terrible Unity bug in which the scene changing conflicts with the recent shutdown
+        //to cause errors on both ends, despite NetworkManager.ShutdownInProgress returning false
+        //the whole time.
+        yield return new WaitForSeconds(1);
+        SceneManager.LoadScene("MenuScene", LoadSceneMode.Single);
     }
 
     public void ExitGame() //called by ExitGame
@@ -221,5 +232,27 @@ public class GameManager : NetworkBehaviour
         {
             Debug.Log(e);
         }
+    }
+
+    public delegate void EnemyDisconnectedAction();
+    public static event EnemyDisconnectedAction EnemyDisconnected;
+
+    private void ListenForClientDisconnect() //called in OnNetworkSpawn
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+    }
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+    }
+
+    private void OnClientDisconnect(ulong clientId)
+    {
+        //if is host and is shutting down, OnClientDisconnect will be called for each connected
+        //client that is being forcibly disconnected
+        if (NetworkManager.Singleton.ShutdownInProgress) return;
+
+        if (clientId != NetworkManager.Singleton.LocalClientId)
+            EnemyDisconnected?.Invoke();
     }
 }

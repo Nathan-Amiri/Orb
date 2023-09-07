@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ public class Explosion : NetworkBehaviour
 
     [SerializeField] private Orb orb;
 
+    public delegate void EndGameAction(bool isWinner);
+    public static event EndGameAction EndGame;
+
     public void TurnOnOff(bool on)
     {
         sr.enabled = on;
@@ -18,11 +22,14 @@ public class Explosion : NetworkBehaviour
 
     private void OnTriggerEnter2D(Collider2D col)
     {
-        orb.Trigger(col); //red pickup
+        //red pickup
+        orb.Trigger(col);
 
         if (!IsServer) return;
         if (!col.CompareTag("Player")) return;
 
+        if (Setup.CurrentGameMode != Setup.GameMode.practice)
+            PlayerInput.stunned = true; //set on server so that InputRelay is informed immediately
         EndGameClientRpc(col.GetComponent<Player>());
     }
 
@@ -31,6 +38,8 @@ public class Explosion : NetworkBehaviour
     {
         Player loser = GetFromReference.GetPlayer(loserReference);
 
-        Debug.Log(loser.name + " exploded!");
+        if (Setup.CurrentGameMode != Setup.GameMode.practice)
+            PlayerInput.stunned = true;
+        EndGame?.Invoke(!loser.IsOwner);
     }
 }

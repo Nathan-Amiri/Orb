@@ -8,8 +8,12 @@ public class Player : NetworkBehaviour
 {
     //class with non-networked logic
 
-    [SerializeField] private EntityMovement entityMovement;
+    [SerializeField] private SpriteRenderer playerBack;
     [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private EntityMovement entityMovement;
+
+    [SerializeField] private Color32 ownerColor;
+    [SerializeField] private Color32 enemyColor;
 
     //read by Relay
     public List<Orb> redOrbs = new();
@@ -24,6 +28,11 @@ public class Player : NetworkBehaviour
     public SpriteRenderer purple; //read by PlayerInput
 
     private readonly float redBlueRange = 5;
+
+    public override void OnNetworkSpawn()
+    {
+        playerBack.color = IsOwner ? ownerColor : enemyColor;
+    }
 
     public void ReceiveAbility(InputRelay.AbilityColor color, Vector2 aimPoint, Orb target)
     {
