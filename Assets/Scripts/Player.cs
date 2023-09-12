@@ -6,6 +6,12 @@ using UnityEngine;
 
 public class Player : NetworkBehaviour
 {
+    //GAME LOGIC DESIGN:
+    //Input path handles ability usage, sensor path handles orb pickup
+    //Input path: PlayerInput > InputRelay > Player
+    //Sensor path: PlayerSensor > Sensor Relay > Player
+    //EnemyAI are identical to normal players, except with an EnemyAIInput component instead of a PlayerInput component
+
     //class with non-networked logic
 
     [SerializeField] private SpriteRenderer playerBack;
@@ -27,11 +33,27 @@ public class Player : NetworkBehaviour
     [SerializeField] private List<SpriteRenderer> cones = new();
     public SpriteRenderer purple; //read by PlayerInput
 
-    private readonly float redBlueRange = 5;
+    [SerializeField] private SpriteRenderer dimSprite;
+
+    public bool isEnemyAI; //read by explosion
 
     public override void OnNetworkSpawn()
     {
-        playerBack.color = IsOwner ? ownerColor : enemyColor;
+        if (Setup.CurrentGameMode == Setup.GameMode.versus)
+        {
+            playerBack.color = IsOwner ? ownerColor : enemyColor;
+            //if practice or challenge, keep the default color
+
+            if (!IsOwner)
+            {
+                //in challenge mode, enemyAI is already set to the correct sorting layer
+                playerBack.sortingOrder -= 1;
+                foreach (SpriteRenderer cone in cones)
+                    cone.sortingOrder -= 1;
+                purple.sortingOrder -= 1;
+                dimSprite.sortingOrder -= 1;
+            }
+        }
     }
 
     public void ReceiveAbility(InputRelay.AbilityColor color, Vector2 aimPoint, Orb target)
@@ -103,7 +125,8 @@ public class Player : NetworkBehaviour
 
     private void FireRed(Vector2 aimPoint)
     {
-        StartCoroutine(playerInput.StartCooldown());
+        if (playerInput != null) //playerInput is null if enemy AI
+            StartCoroutine(playerInput.StartCooldown());
 
         Vector2 targetPosition = RedBlueDestination(aimPoint);
         redOrbs[0].transform.position = transform.position;
@@ -117,7 +140,8 @@ public class Player : NetworkBehaviour
 
     private void FireBlue(Vector2 aimPoint)
     {
-        StartCoroutine(playerInput.StartCooldown());
+        if (playerInput != null) //playerInput is null if enemy AI
+            StartCoroutine(playerInput.StartCooldown());
 
         ResetYellowDestinedOrb();
 
@@ -133,7 +157,8 @@ public class Player : NetworkBehaviour
 
     private void FireYellow(Orb target)
     {
-        StartCoroutine(playerInput.StartCooldown());
+        if (playerInput != null) //playerInput is null if enemy AI
+            StartCoroutine(playerInput.StartCooldown());
 
         ResetYellowDestinedOrb();
 
@@ -151,7 +176,8 @@ public class Player : NetworkBehaviour
 
     private void FireGreen(Orb target)
     {
-        StartCoroutine(playerInput.StartCooldown());
+        if (playerInput != null) //playerInput is null if enemy AI
+            StartCoroutine(playerInput.StartCooldown());
 
         target.ChangeReady(false);
         destinedOrbs.Add(target);
@@ -167,7 +193,8 @@ public class Player : NetworkBehaviour
 
     private void FirePurple(Orb target)
     {
-        StartCoroutine(playerInput.StartCooldown());
+        if (playerInput != null) //playerInput is null if enemy AI
+            StartCoroutine(playerInput.StartCooldown());
 
         target.ChangeReady(false);
         destinedOrbs.Add(target);
@@ -190,10 +217,10 @@ public class Player : NetworkBehaviour
         Vector2 destination;
         Vector2 aimDirection = (mousePosition - (Vector2)transform.position).normalized;
         //if mouse is in range
-        if (Vector2.Distance(mousePosition, (Vector2)transform.position) <= redBlueRange)
+        if (Vector2.Distance(mousePosition, (Vector2)transform.position) <= StaticLibrary.redBlueRange)
             destination = mousePosition;
         else
-            destination = (Vector2)transform.position + (aimDirection * redBlueRange);
+            destination = (Vector2)transform.position + (aimDirection * StaticLibrary.redBlueRange);
 
         return destination;
     }

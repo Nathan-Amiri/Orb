@@ -46,8 +46,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPref: {fileID: 5852490876624757257, guid: 8ff548087bf2b8347b851c1b8cce1e68, type: 3}
+  enemyAIPref: {fileID: 2202308996717271134, guid: dd781fe20211c5f47a647b7d6bdd570f, type: 3}
   orbPref: {fileID: 5746160003740248730, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
-  waitCanvas: {fileID: 0}
+  overlay: {fileID: 0}
+  waitingForOpponent: {fileID: 0}
+  requiredConnections: 0
+  gameMode: 0
 --- !u!114 &8466212549970839196
 MonoBehaviour:
   m_ObjectHideFlags: 0

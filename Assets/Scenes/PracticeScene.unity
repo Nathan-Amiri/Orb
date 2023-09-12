@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 104043345}
   - component: {fileID: 104043344}
   - component: {fileID: 104043348}
+  - component: {fileID: 104043349}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -242,6 +243,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   console: {fileID: 829553199}
+  playAgain: {fileID: 0}
+--- !u!114 &104043349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104043343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3495012672
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &407826348
 GameObject:
   m_ObjectHideFlags: 0
@@ -765,6 +787,10 @@ PrefabInstance:
     - target: {fileID: 4890617918063781690, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 744012687
+      objectReference: {fileID: 0}
+    - target: {fileID: 4890617918063781690, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
+      propertyPath: DontDestroyWithOwner
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5214077527026342004, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
       propertyPath: m_RootOrder
@@ -1323,6 +1349,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 1416846181
       objectReference: {fileID: 0}
+    - target: {fileID: 4890617918063781690, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
+      propertyPath: DontDestroyWithOwner
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5214077527026342004, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
       propertyPath: m_RootOrder
       value: -1
@@ -1777,6 +1807,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 2431690245
       objectReference: {fileID: 0}
+    - target: {fileID: 4890617918063781690, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
+      propertyPath: DontDestroyWithOwner
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5214077527026342004, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
       propertyPath: m_RootOrder
       value: -1
@@ -1934,6 +1968,10 @@ PrefabInstance:
     - target: {fileID: 4890617918063781690, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 3827354589
+      objectReference: {fileID: 0}
+    - target: {fileID: 4890617918063781690, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
+      propertyPath: DontDestroyWithOwner
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5214077527026342004, guid: 7dc7eb16bd725384a8145e30870e82a9, type: 3}
       propertyPath: m_RootOrder

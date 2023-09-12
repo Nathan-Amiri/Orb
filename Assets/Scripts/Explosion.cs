@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -40,6 +41,10 @@ public class Explosion : NetworkBehaviour
 
         if (Setup.CurrentGameMode != Setup.GameMode.practice)
             PlayerInput.stunned = true;
-        EndGame?.Invoke(!loser.IsOwner);
+
+        if (Setup.CurrentGameMode == Setup.GameMode.challenge)
+            EndGame?.Invoke(loser.isEnemyAI);
+        else //practice or versus
+            EndGame?.Invoke(!loser.IsOwner);
     }
 }

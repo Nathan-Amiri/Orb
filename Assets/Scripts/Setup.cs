@@ -7,6 +7,7 @@ public class Setup : NetworkBehaviour
 {
     //assigned in prefab
     [SerializeField] private GameObject playerPref;
+    [SerializeField] private GameObject enemyAIPref;
     [SerializeField] private GameObject orbPref;
 
     //assigned in scene
@@ -20,7 +21,7 @@ public class Setup : NetworkBehaviour
 
     private readonly List<ulong> playerIDs = new();
 
-    private void Start()
+    private void Awake() //start doesn't consistently run before OnNetworkSpawn
     {
         CurrentGameMode = gameMode;
     }
@@ -39,37 +40,56 @@ public class Setup : NetworkBehaviour
 
 
         foreach (ulong id in playerIDs)
-        {
-            Vector2 spawnPosition = Vector2.zero;
-            if (CurrentGameMode == GameMode.versus)
-            {
-                //host spawns on left, client spawns on right
-                if (id == NetworkManager.Singleton.LocalClientId)
-                    spawnPosition = new Vector2(-7, 0);
-                else
-                    spawnPosition = new Vector2(7, 0);
-            }
+            SpawnPlayer(id, false);
 
-            GameObject playerObj = Instantiate(playerPref, spawnPosition, Quaternion.identity);
-            playerObj.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
-
-            NetworkBehaviourReference[] orbs = new NetworkBehaviourReference[4]
-            {
-                SpawnOrb(id, Orb.OrbColor.red, Color.red),
-                SpawnOrb(id, Orb.OrbColor.blue, Color.blue),
-                SpawnOrb(id, Orb.OrbColor.yellow, Color.yellow),
-                SpawnOrb(id, Orb.OrbColor.green, Color.green)
-            };
-
-            PlayerSetupClientRpc(playerObj.GetComponent<Player>(), orbs);
-        }
+        if (CurrentGameMode == GameMode.challenge)
+            SpawnPlayer(NetworkManager.Singleton.LocalClientId, true);
     }
 
-    private Orb SpawnOrb(ulong ownerId, Orb.OrbColor orbColor, Color spriteColor)
+    private void SpawnPlayer(ulong ownerId, bool spawnEnemyAI) //only run on the server
+    {
+        GameObject spawnPref = spawnEnemyAI ? enemyAIPref : playerPref;
+
+        Vector2 spawnPosition = Vector2.zero; //if practice, spawn in center
+        if (CurrentGameMode == GameMode.challenge)
+        {
+            //player spawns on left, enemyAI spawns on right
+            if (!spawnEnemyAI)
+                spawnPosition = new Vector2(-7, 0);
+            else
+                spawnPosition = new Vector2(7, 0);
+        }
+        else if (CurrentGameMode == GameMode.versus)
+        {
+            //host spawns on left, client spawns on right
+            if (ownerId == NetworkManager.Singleton.LocalClientId)
+                spawnPosition = new Vector2(-7, 0);
+            else
+                spawnPosition = new Vector2(7, 0);
+        }
+
+        GameObject playerObj = Instantiate(spawnPref, spawnPosition, Quaternion.identity);
+        if (ownerId != default)
+            playerObj.GetComponent<NetworkObject>().SpawnWithOwnership(ownerId, true);
+        else //if enemyAI
+            playerObj.GetComponent<NetworkObject>().Spawn(true);
+
+        NetworkBehaviourReference[] orbs = new NetworkBehaviourReference[4]
+        {
+            SpawnOrb(Orb.OrbColor.red, Color.red),
+            SpawnOrb(Orb.OrbColor.blue, Color.blue),
+            SpawnOrb(Orb.OrbColor.yellow, Color.yellow),
+            SpawnOrb(Orb.OrbColor.green, Color.green)
+        };
+
+        PlayerSetupClientRpc(playerObj.GetComponent<Player>(), orbs);
+    }
+
+    private Orb SpawnOrb(Orb.OrbColor orbColor, Color spriteColor) //only run on the server
     {
         GameObject orbObj = Instantiate(orbPref, new Vector2(-15, 0), Quaternion.identity);
         orbObj.name = orbColor.ToString();
-        orbObj.GetComponent<NetworkObject>().SpawnWithOwnership(ownerId, true);
+        orbObj.GetComponent<NetworkObject>().Spawn(true);
 
         Orb orb = orbObj.GetComponent<Orb>();
         OrbSetupClientRpc(orb, orbColor, spriteColor);
@@ -80,38 +100,23 @@ public class Setup : NetworkBehaviour
     [ClientRpc]
     private void OrbSetupClientRpc(NetworkBehaviourReference reference, Orb.OrbColor orbColor, Color spriteColor)
     {
-        if (!reference.TryGet(out Orb orb))
-        {
-            Debug.LogError("Received invalid orb reference");
-            return;
-        }
+        Orb orb = GetFromReference.GetOrb(reference);
 
         orb.color = orbColor;
         orb.sr.color = spriteColor;
 
-        if (waitingForOpponent != null)
+        if (waitingForOpponent != null) //true in versus mode
             waitingForOpponent.SetActive(false);
     }
 
     [ClientRpc]
     private void PlayerSetupClientRpc(NetworkBehaviourReference playerReference, NetworkBehaviourReference[] orbReferences)
     {
-        if (!playerReference.TryGet(out Player player))
-        {
-            Debug.LogError("Received invalid player reference");
-            return;
-        }
+        Player player = GetFromReference.GetPlayer(playerReference);
 
         Orb[] orbs = new Orb[4];
         for (int i = 0; i < 4; i++)
-        {
-            if (!orbReferences[i].TryGet(out Orb orb))
-            {
-                Debug.LogError("Received invalid orb reference");
-                return;
-            }
-            orbs[i] = orb;
-        }
+            orbs[i] = GetFromReference.GetOrb(orbReferences[i]);
 
         player.redOrbs.Add(orbs[0]);
         player.blueOrbs.Add(orbs[1]);

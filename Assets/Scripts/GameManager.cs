@@ -16,7 +16,9 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : NetworkBehaviour
 {
-    [SerializeReference] private MenuScene menuScene;
+    [SerializeField] private GameObject networkManagerPref;
+
+    [SerializeField] private MenuScene menuScene;
 
     private Lobby currentLobby;
 
@@ -33,6 +35,9 @@ public class GameManager : NetworkBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+        if (NetworkManager.Singleton == null)
+            Instantiate(networkManagerPref);
     }
 
     private void Start()

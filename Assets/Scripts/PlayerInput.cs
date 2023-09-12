@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,6 +17,11 @@ public class PlayerInput : MonoBehaviour
     public static Orb orbMouseOver; //set by Orb, does not sync across connections
 
     public static bool stunned = true; //set by Overlay and Explosion
+
+    private void Awake()
+    {
+        stunned = true; //reset for every new game
+    }
 
     private void Update()
     {
