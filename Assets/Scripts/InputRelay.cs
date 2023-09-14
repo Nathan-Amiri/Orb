@@ -7,17 +7,15 @@ public class InputRelay : NetworkBehaviour
 {
     public Player player;
 
-    public enum AbilityColor { red, yellow, green, blue, purple }
-
     [ServerRpc(RequireOwnership = false)]
-    public void InputRelayServerRpc(AbilityColor color, Vector2 aimPoint = default, NetworkBehaviourReference newTarget = default)
+    public void InputRelayServerRpc(Player.AbilityColor color, Vector2 aimPoint = default, NetworkBehaviourReference newTarget = default)
     {
         //perform necessary checks
 
         if (PlayerInput.stunned) return; //set to true the instant the game ends
 
         //if missing aimPoint
-        if (color == AbilityColor.red || color == AbilityColor.blue)
+        if (color == Player.AbilityColor.red || color == Player.AbilityColor.blue)
         {
             if (aimPoint == default)
             {
@@ -36,23 +34,23 @@ public class InputRelay : NetworkBehaviour
         //if player doesn't have enough orbs, (or has orbs and attempting to cast purple) return
         switch (color)
         {
-            case AbilityColor.red:
+            case Player.AbilityColor.red:
                 if (player.redOrbs.Count == 0)
                     return;
                 break;
-            case AbilityColor.blue:
+            case Player.AbilityColor.blue:
                 if (player.blueOrbs.Count == 0)
                     return;
                 break;
-            case AbilityColor.yellow:
+            case Player.AbilityColor.yellow:
                 if (player.yellowOrbs.Count == 0)
                     return;
                 break;
-            case AbilityColor.green:
+            case Player.AbilityColor.green:
                 if (player.greenOrbs.Count == 0)
                     return;
                 break;
-            case AbilityColor.purple:
+            case Player.AbilityColor.purple:
                 {
                     //check purple on both caster and server
                     if (player.redOrbs.Count > 0) return;
@@ -69,10 +67,10 @@ public class InputRelay : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void InputRelayClientRpc(AbilityColor color, Vector2 aimPoint, NetworkBehaviourReference targetReference)
+    private void InputRelayClientRpc(Player.AbilityColor color, Vector2 aimPoint, NetworkBehaviourReference targetReference)
     {
         Orb target = null;
-        if (color != AbilityColor.red && color != AbilityColor.blue)
+        if (color != Player.AbilityColor.red && color != Player.AbilityColor.blue)
         {
             target = GetFromReference.GetOrb(targetReference);
             if (target == null)

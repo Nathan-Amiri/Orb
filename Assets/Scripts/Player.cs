@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
 public class Player : NetworkBehaviour
@@ -13,6 +14,9 @@ public class Player : NetworkBehaviour
     //EnemyAI are identical to normal players, except with an EnemyAIInput component instead of a PlayerInput component
 
     //class with non-networked logic
+
+    public enum AbilityColor { red, yellow, green, blue, purple }
+
 
     [SerializeField] private SpriteRenderer playerBack;
     [SerializeField] private PlayerInput playerInput;
@@ -56,23 +60,23 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void ReceiveAbility(InputRelay.AbilityColor color, Vector2 aimPoint, Orb target)
+    public void ReceiveAbility(AbilityColor color, Vector2 aimPoint, Orb target)
     {
         switch (color)
         {
-            case InputRelay.AbilityColor.red:
+            case AbilityColor.red:
                 FireRed(aimPoint);
                 break;
-            case InputRelay.AbilityColor.blue:
+            case AbilityColor.blue:
                 FireBlue(aimPoint);
                 break;
-            case InputRelay.AbilityColor.yellow:
+            case AbilityColor.yellow:
                 FireYellow(target);
                 break;
-            case InputRelay.AbilityColor.green:
+            case AbilityColor.green:
                 FireGreen(target);
                 break;
-            case InputRelay.AbilityColor.purple:
+            case AbilityColor.purple:
                 FirePurple(target);
                 break;
         }
@@ -88,16 +92,21 @@ public class Player : NetworkBehaviour
         cones[5].enabled = blueOrbs.Count > 1; //blue2
         cones[6].enabled = yellowOrbs.Count > 1; //yellow2
         cones[7].enabled = greenOrbs.Count > 1; //green2
+    }
 
-        foreach (SpriteRenderer cone in cones)
+    private void UpdatePurple() //run when orb is added or removed
+    {
+        List<List<Orb>> orbLists = new() { redOrbs, blueOrbs, yellowOrbs, greenOrbs };
+
+        foreach (List<Orb> orbList in orbLists)
         {
-            if (cone.enabled)
+            if (orbList.Count > 0)
             {
                 purple.enabled = false;
-                break;
+                return;
             }
-            purple.enabled = true;
         }
+        purple.enabled = true;
     }
 
     public void AddOrb(Orb orb) //run by Orb (if red)
@@ -108,19 +117,21 @@ public class Player : NetworkBehaviour
 
         switch (orb.color)
         {
-            case Orb.OrbColor.red:
+            case AbilityColor.red:
                 redOrbs.Add(orb);
                 break;
-            case Orb.OrbColor.blue:
+            case AbilityColor.blue:
                 blueOrbs.Add(orb);
                 break;
-            case Orb.OrbColor.yellow:
+            case AbilityColor.yellow:
                 yellowOrbs.Add(orb);
                 break;
-            case Orb.OrbColor.green:
+            case AbilityColor.green:
                 greenOrbs.Add(orb);
                 break;
         }
+
+        UpdatePurple();
     }
 
     private void FireRed(Vector2 aimPoint)
@@ -136,6 +147,7 @@ public class Player : NetworkBehaviour
         StartCoroutine(redOrbs[0].Explode());
 
         redOrbs.RemoveAt(0);
+        UpdatePurple();
     }
 
     private void FireBlue(Vector2 aimPoint)
@@ -153,6 +165,7 @@ public class Player : NetworkBehaviour
         StartCoroutine(blueOrbs[0].Explode());
 
         blueOrbs.RemoveAt(0);
+        UpdatePurple();
     }
 
     private void FireYellow(Orb target)
@@ -172,6 +185,7 @@ public class Player : NetworkBehaviour
         StartCoroutine(yellowOrbs[0].Explode());
 
         yellowOrbs.RemoveAt(0);
+        UpdatePurple();
     }
 
     private void FireGreen(Orb target)
@@ -189,6 +203,7 @@ public class Player : NetworkBehaviour
         StartCoroutine(greenOrbs[0].Explode());
 
         greenOrbs.RemoveAt(0);
+        UpdatePurple();
     }
 
     private void FirePurple(Orb target)

@@ -14,16 +14,16 @@ public class SensorRelay : NetworkBehaviour
 
         switch (orb.color)
         {
-            case Orb.OrbColor.red:
+            case Player.AbilityColor.red:
                 if (player.redOrbs.Count == 2) return;
                 break;
-            case Orb.OrbColor.blue:
+            case Player.AbilityColor.blue:
                 if (player.blueOrbs.Count == 2) return;
                 break;
-            case Orb.OrbColor.yellow:
+            case Player.AbilityColor.yellow:
                 if (player.yellowOrbs.Count == 2) return;
                 break;
-            case Orb.OrbColor.green:
+            case Player.AbilityColor.green:
                 if (player.greenOrbs.Count == 2) return;
                 break;
         }

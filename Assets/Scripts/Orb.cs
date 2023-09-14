@@ -19,9 +19,7 @@ public class Orb : NetworkBehaviour
 
     [SerializeField] private bool readyAtStart;
 
-
-    public enum OrbColor { red, blue, yellow, green }
-    public OrbColor color;
+    public Player.AbilityColor color;
 
     public bool ready { get; private set; }
 

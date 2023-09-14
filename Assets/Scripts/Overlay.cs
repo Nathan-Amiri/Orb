@@ -14,6 +14,9 @@ public class Overlay : NetworkBehaviour
 
     private int playersPlayingAgain; //server only
 
+    public delegate void StartGameAction();
+    public static event StartGameAction StartGame;
+
     private void OnEnable()
     {
         Explosion.EndGame += OnGameEnd;
@@ -44,6 +47,10 @@ public class Overlay : NetworkBehaviour
         }
 
         PlayerInput.stunned = false;
+        StartGame?.Invoke();
+
+        yield return new WaitForSeconds(1.2f);
+        console.text = "";
     }
 
     private void OnGameEnd(bool isWinner)

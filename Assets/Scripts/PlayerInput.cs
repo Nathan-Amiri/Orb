@@ -32,28 +32,26 @@ public class PlayerInput : MonoBehaviour
 
         if (!onCooldown)
         {
-            //fire purple if purple
-
             if (Input.GetKeyDown(KeyCode.W))
-                UseAbility(InputRelay.AbilityColor.red);
+                UseAbility(Player.AbilityColor.red);
             else if (Input.GetKeyDown(KeyCode.S))
-                UseAbility(InputRelay.AbilityColor.blue);
+                UseAbility(Player.AbilityColor.blue);
             else if (Input.GetKeyDown(KeyCode.A))
-                UseAbility(InputRelay.AbilityColor.yellow);
+                UseAbility(Player.AbilityColor.yellow);
             else if (Input.GetKeyDown(KeyCode.D))
-                UseAbility(InputRelay.AbilityColor.green);
+                UseAbility(Player.AbilityColor.green);
         }
         else //if on cooldown
             dimPivot.transform.localScale -= new Vector3(0, 1 / cooldown * Time.deltaTime);
     }
 
-    private void UseAbility(InputRelay.AbilityColor color)
+    private void UseAbility(Player.AbilityColor color)
     {
         if (player.purple.enabled)
-            color = InputRelay.AbilityColor.purple;
+            color = Player.AbilityColor.purple;
 
 
-        if (color == InputRelay.AbilityColor.red || color == InputRelay.AbilityColor.blue)
+        if (color == Player.AbilityColor.red || color == Player.AbilityColor.blue)
             inputRelay.InputRelayServerRpc(color, mousePosition);
         //perform check now to ensure no null networkbehaviour reference is sent
         else if (orbMouseOver != null)

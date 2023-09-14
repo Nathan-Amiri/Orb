@@ -25,7 +25,7 @@ public class Explosion : NetworkBehaviour
     {
         //red pickup
         orb.Trigger(col);
-
+        return;
         if (!IsServer) return;
         if (!col.CompareTag("Player")) return;
 

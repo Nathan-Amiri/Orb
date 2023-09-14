@@ -76,16 +76,16 @@ public class Setup : NetworkBehaviour
 
         NetworkBehaviourReference[] orbs = new NetworkBehaviourReference[4]
         {
-            SpawnOrb(Orb.OrbColor.red, Color.red),
-            SpawnOrb(Orb.OrbColor.blue, Color.blue),
-            SpawnOrb(Orb.OrbColor.yellow, Color.yellow),
-            SpawnOrb(Orb.OrbColor.green, Color.green)
+            SpawnOrb(Player.AbilityColor.red, Color.red),
+            SpawnOrb(Player.AbilityColor.blue, Color.blue),
+            SpawnOrb(Player.AbilityColor.yellow, Color.yellow),
+            SpawnOrb(Player.AbilityColor.green, Color.green)
         };
 
         PlayerSetupClientRpc(playerObj.GetComponent<Player>(), orbs);
     }
 
-    private Orb SpawnOrb(Orb.OrbColor orbColor, Color spriteColor) //only run on the server
+    private Orb SpawnOrb(Player.AbilityColor orbColor, Color spriteColor) //only run on the server
     {
         GameObject orbObj = Instantiate(orbPref, new Vector2(-15, 0), Quaternion.identity);
         orbObj.name = orbColor.ToString();
@@ -98,7 +98,7 @@ public class Setup : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void OrbSetupClientRpc(NetworkBehaviourReference reference, Orb.OrbColor orbColor, Color spriteColor)
+    private void OrbSetupClientRpc(NetworkBehaviourReference reference, Player.AbilityColor orbColor, Color spriteColor)
     {
         Orb orb = GetFromReference.GetOrb(reference);
 
@@ -125,7 +125,10 @@ public class Setup : NetworkBehaviour
 
         if (CurrentGameMode == GameMode.practice)
             PlayerInput.stunned = false;
-        else
+        else if (!player.isEnemyAI) //in challenge mode, prevent countdown from starting twice
             overlay.StartCountdown();
+
+        if (player.isEnemyAI)
+            player.GetComponent<EnemyAIInput>().OnSpawn();
     }
 }
