@@ -77,7 +77,7 @@ SpriteRenderer:
   m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 1, g: 0.5244503, b: 0, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.5882353}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -102,6 +102,8 @@ MonoBehaviour:
   sr: {fileID: 1544094150279686197}
   trigger: {fileID: 6000234178651679933}
   orb: {fileID: 2603091690993387241}
+  selfExplosionColor: {r: 0, g: 0, b: 0, a: 0.5882353}
+  enemyExplosionColor: {r: 0.78431374, g: 0.78431374, b: 1, a: 0.39215687}
 --- !u!50 &28799600987119525
 Rigidbody2D:
   serializedVersion: 4

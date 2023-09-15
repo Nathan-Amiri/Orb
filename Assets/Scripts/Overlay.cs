@@ -67,13 +67,9 @@ public class Overlay : NetworkBehaviour
     {
         yield return new WaitForSeconds(2f);
 
-        if (Setup.CurrentGameMode == Setup.GameMode.practice)
-            console.text = "";
-        else
-        {
-            console.text = "Play again?";
-            playAgain.SetActive(true);
-        }
+
+        console.text = "Play again?";
+        playAgain.SetActive(true);
     }
 
     public void SelectPlayAgain()
@@ -82,7 +78,7 @@ public class Overlay : NetworkBehaviour
 
         if (Setup.CurrentGameMode == Setup.GameMode.challenge)
             NetworkManager.SceneManager.LoadScene("ChallengeScene", LoadSceneMode.Single);
-        else if (Setup.CurrentGameMode == Setup.GameMode.versus)
+        else //if versus
         {
             console.text = "Waiting for opponent...";
             VersusPlayAgainServerRpc();

@@ -9,13 +9,17 @@ public class MenuScene : MonoBehaviour
     [SerializeField] private GameObject connectingCanvas;
     [SerializeField] private TMP_Text connectingConsole;
 
+    [SerializeField] private GameObject rules;
+
     [SerializeField] private Button practiceButton;
     [SerializeField] private Button challengeButton;
     [SerializeField] private Button versusButton;
+    [SerializeField] private Button rulesButton;
 
     [SerializeField] private TMP_Dropdown resolutionDropdown;
 
     [SerializeField] private TMP_Text console;
+    [SerializeField] private TMP_Text rulesButtonText;
 
     private void Start()
     {
@@ -78,6 +82,24 @@ public class MenuScene : MonoBehaviour
         ToggleButtonsInteractable(false);
 
         GameManager.Instance.VersusLobby();
+    }
+
+    public void SelectRules()
+    {
+        if (!rules.activeSelf)
+        {
+            rules.SetActive(true);
+            ToggleButtonsInteractable(false);
+
+            rulesButtonText.text = "Ok";
+        }
+        else
+        {
+            rules.SetActive(false);
+            ToggleButtonsInteractable(true);
+
+            rulesButtonText.text = "How to Play";
+        }
     }
 
     public void SelectNewResolution()

@@ -202,11 +202,13 @@ public class GameManager : NetworkBehaviour
     }
     private IEnumerator WaitForShutdown()
     {
-        //delaying the scene change gives time for the shutdown to occur. A temporary solution
-        //for a terrible Unity bug in which the scene changing conflicts with the recent shutdown
-        //to cause errors on both ends, despite NetworkManager.ShutdownInProgress returning false
-        //the whole time.
-        yield return new WaitForSeconds(1);
+        //delaying the scene change gives time for the shutdown to occur. This is an editor-only solution
+        //for a known Netcode for Gameobjects bug in which the scene changing conflicts with the recent shutdown
+        //to cause errors, despite NetworkManager.ShutdownInProgress returning false at the time. In builds, the
+        //shutdown will always fully complete and the scenes will always fully unload/load
+        //In short, without the delay, a bug causes an error which disrupts playmode in the editor despite nothing else being wrong
+        if (Application.isEditor)
+            yield return new WaitForSeconds(1);
         SceneManager.LoadScene("MenuScene", LoadSceneMode.Single);
     }
 

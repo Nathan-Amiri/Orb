@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class EnemyAIInput : MonoBehaviour
@@ -70,7 +69,7 @@ public class EnemyAIInput : MonoBehaviour
         //check to see which colors are available to use
         bool anyReadyOrbsInScene = false;
         foreach (Orb orb in orbs)
-            if (orb.ready)
+            if (orb.enemyAIReady)
             {
                 anyReadyOrbsInScene = true;
                 break;
@@ -125,36 +124,36 @@ public class EnemyAIInput : MonoBehaviour
             return;
         }
 
-        //else if in danger, choose yellow if available, else blue, else green
-        bool isInDanger = false;
-        foreach (Orb orb in orbs)
-        {
-            bool isInExplosionRange = Vector2.Distance(orb.transform.position, transform.position) <= StaticLibrary.playerRadius + StaticLibrary.explosionRadius;
-            if (isInExplosionRange && !orb.ready)
-            {
-                isInDanger = true;
-                break;
-            }
-        }
-        if (isInDanger)
-        {
-            if (debugMode) Debug.Log("in danger!");
-            if (yellowAvailable)
-            {
-                PrioritizeColor(Player.AbilityColor.yellow, greenAvailable);
-                return;
-            }
-            else if (blueAvailable)
-            {
-                PrioritizeColor(Player.AbilityColor.blue, greenAvailable);
-                return;
-            }
-            else //since there's more than one available, green (and red) must be available
-            {
-                PrioritizeColor(Player.AbilityColor.green, greenAvailable);
-                return;
-            }
-        }
+        ////else if in danger, choose yellow if available, else blue, else green
+        //bool isInDanger = false;
+        //foreach (Orb orb in orbs)
+        //{
+        //    bool isInExplosionRange = Vector2.Distance(orb.transform.position, transform.position) <= StaticLibrary.playerRadius + StaticLibrary.explosionRadius;
+        //    if (isInExplosionRange && !orb.enemyAIReady)
+        //    {
+        //        isInDanger = true;
+        //        break;
+        //    }
+        //}
+        //if (isInDanger)
+        //{
+        //    if (debugMode) Debug.Log("in danger!");
+        //    if (yellowAvailable)
+        //    {
+        //        PrioritizeColor(Player.AbilityColor.yellow, greenAvailable);
+        //        return;
+        //    }
+        //    else if (blueAvailable)
+        //    {
+        //        PrioritizeColor(Player.AbilityColor.blue, greenAvailable);
+        //        return;
+        //    }
+        //    else //since there's more than one available, green (and red) must be available
+        //    {
+        //        PrioritizeColor(Player.AbilityColor.green, greenAvailable);
+        //        return;
+        //    }
+        //}
 
         //else if red available and player is in range, fire red
         float maxFireRange = StaticLibrary.redBlueRange + StaticLibrary.playerRadius + StaticLibrary.explosionRadius;
@@ -203,7 +202,7 @@ public class EnemyAIInput : MonoBehaviour
         List<Orb> availableOrbsToGet = new();
         foreach (Orb orb in orbs)
         {
-            if (!orb.ready) continue;
+            if (!orb.enemyAIReady) continue;
             //if red or blue and out of range, continue
             if (redOrBlue && Vector2.Distance(transform.position, orb.transform.position) > maxGetRange) continue;
 

@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -12,11 +10,16 @@ public class Explosion : NetworkBehaviour
 
     [SerializeField] private Orb orb;
 
+    [SerializeField] private Color selfExplosionColor;
+    [SerializeField] private Color enemyExplosionColor;
+
     public delegate void EndGameAction(bool isWinner);
     public static event EndGameAction EndGame;
 
-    public void TurnOnOff(bool on)
+    public void TurnOnOff(bool on, bool isEnemyExplosion = false)
     {
+        if (on)
+            sr.color = isEnemyExplosion ? enemyExplosionColor : selfExplosionColor;
         sr.enabled = on;
         trigger.enabled = on;
     }
@@ -25,12 +28,15 @@ public class Explosion : NetworkBehaviour
     {
         //red pickup
         orb.Trigger(col);
-        return;
+
         if (!IsServer) return;
         if (!col.CompareTag("Player")) return;
+        Player triggeredPlayer = col.GetComponent<Player>();
+        if (triggeredPlayer == orb.caster) return;
+        if (triggeredPlayer.isEnemyAI) return;
 
-        if (Setup.CurrentGameMode != Setup.GameMode.practice)
-            PlayerInput.stunned = true; //set on server so that InputRelay is informed immediately
+
+        PlayerInput.stunned = true; //set on server so that InputRelay is informed immediately
         EndGameClientRpc(col.GetComponent<Player>());
     }
 
@@ -39,12 +45,9 @@ public class Explosion : NetworkBehaviour
     {
         Player loser = GetFromReference.GetPlayer(loserReference);
 
-        if (Setup.CurrentGameMode != Setup.GameMode.practice)
-            PlayerInput.stunned = true;
-
-        if (Setup.CurrentGameMode == Setup.GameMode.challenge)
-            EndGame?.Invoke(loser.isEnemyAI);
-        else //practice or versus
+        //if (Setup.CurrentGameMode == Setup.GameMode.challenge)
+        //    EndGame?.Invoke(loser.isEnemyAI);
+        //else versus
             EndGame?.Invoke(!loser.IsOwner);
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
 public class Player : NetworkBehaviour
@@ -111,8 +110,7 @@ public class Player : NetworkBehaviour
 
     public void AddOrb(Orb orb) //run by Orb (if red)
     {
-        orb.ChangeReady(false);
-
+        StartCoroutine(orb.ChangeReady(false));
         orb.Disappear();
 
         switch (orb.color)
@@ -143,8 +141,7 @@ public class Player : NetworkBehaviour
         redOrbs[0].transform.position = transform.position;
         redOrbs[0].entityMovement.NewTarget(targetPosition);
 
-        redOrbs[0].redCaster = this;
-        StartCoroutine(redOrbs[0].Explode());
+        StartCoroutine(redOrbs[0].Explode(this));
 
         redOrbs.RemoveAt(0);
         UpdatePurple();
@@ -162,7 +159,7 @@ public class Player : NetworkBehaviour
         Vector2 targetPosition = RedBlueDestination(aimPoint);
         entityMovement.NewTarget(targetPosition);
 
-        StartCoroutine(blueOrbs[0].Explode());
+        StartCoroutine(blueOrbs[0].Explode(this));
 
         blueOrbs.RemoveAt(0);
         UpdatePurple();
@@ -175,14 +172,14 @@ public class Player : NetworkBehaviour
 
         ResetYellowDestinedOrb();
 
-        target.ChangeReady(false);
+        StartCoroutine(target.ChangeReady(false));
         yellowDestinedOrb = target; //yellow effect cancels with new movement
 
         yellowOrbs[0].transform.position = transform.position;
 
         entityMovement.NewTarget(target.transform.position);
 
-        StartCoroutine(yellowOrbs[0].Explode());
+        StartCoroutine(yellowOrbs[0].Explode(this));
 
         yellowOrbs.RemoveAt(0);
         UpdatePurple();
@@ -193,14 +190,14 @@ public class Player : NetworkBehaviour
         if (playerInput != null) //playerInput is null if enemy AI
             StartCoroutine(playerInput.StartCooldown());
 
-        target.ChangeReady(false);
+        StartCoroutine(target.ChangeReady(false));
         destinedOrbs.Add(target);
 
         greenOrbs[0].transform.position = target.transform.position;
 
         target.entityMovement.playerTarget = transform;
 
-        StartCoroutine(greenOrbs[0].Explode());
+        StartCoroutine(greenOrbs[0].Explode(this));
 
         greenOrbs.RemoveAt(0);
         UpdatePurple();
@@ -211,7 +208,7 @@ public class Player : NetworkBehaviour
         if (playerInput != null) //playerInput is null if enemy AI
             StartCoroutine(playerInput.StartCooldown());
 
-        target.ChangeReady(false);
+        StartCoroutine(target.ChangeReady(false));
         destinedOrbs.Add(target);
 
         target.entityMovement.playerTarget = transform;
@@ -221,7 +218,7 @@ public class Player : NetworkBehaviour
     {
         if (yellowDestinedOrb != null)
         {
-            yellowDestinedOrb.ChangeReady(true);
+            StartCoroutine(yellowDestinedOrb.ChangeReady(true));
             yellowDestinedOrb = null;
         }
     }

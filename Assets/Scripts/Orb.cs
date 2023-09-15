@@ -13,15 +13,18 @@ public class Orb : NetworkBehaviour
     [SerializeField] private CircleCollider2D trigger;
     [SerializeField] private Explosion explosion;
 
-    //the player that just launched this red orb
-    [NonSerialized] public Player redCaster;
-    //[NonSerialized] public bool redPickup; //true if red and if can currently get orbs
+    //the player that just launched this orb
+    [NonSerialized] public Player caster; //set by Player, read by Explosion
 
     [SerializeField] private bool readyAtStart;
 
     public Player.AbilityColor color;
 
     public bool ready { get; private set; }
+    public bool enemyAIReady { get; private set; }
+
+    //enemyAI gives humanPlayers a chance to target orbs before targeting them
+    private readonly float graceTime;
 
     public override void OnNetworkSpawn()
     {
@@ -44,7 +47,7 @@ public class Orb : NetworkBehaviour
             PlayerInput.orbMouseOver = null;
     }
 
-    public void ChangeReady(bool readyOn)
+    public IEnumerator ChangeReady(bool readyOn)
     {
         ready = readyOn;
 
@@ -52,12 +55,15 @@ public class Orb : NetworkBehaviour
         if (readyOn)
         {
             trigger.enabled = false;
-            Invoke(nameof(Flicker), 0);
+            yield return new WaitForSeconds(0);
+            trigger.enabled = true;
         }
-    }
-    private void Flicker()
-    {
-        trigger.enabled = true;
+
+        //give humanPlayers a chance to target orb before enemyAI can
+        yield return new WaitForSeconds(graceTime);
+
+        if (ready)
+            enemyAIReady = true;
     }
 
     public void Disappear()
@@ -67,17 +73,21 @@ public class Orb : NetworkBehaviour
         transform.position = new Vector2(-15, 0);
     }
 
-    public IEnumerator Explode()
+    public IEnumerator Explode(Player newCaster)
     {
+        caster = newCaster;
+
         yield return new WaitForSeconds(.7f);
 
-        explosion.TurnOnOff(true);
+        //if enemyAI, IsOwner = true despite being an enemy (since there is only one client)
+        bool isEnemyExplosion = caster.isEnemyAI || !caster.IsOwner;
+        explosion.TurnOnOff(true, isEnemyExplosion);
 
         yield return new WaitForSeconds(.5f);
 
-        explosion.TurnOnOff(false);
-        ChangeReady(true);
-        redCaster = null;
+        explosion.TurnOnOff(false); //no need to specify isEnemy
+        StartCoroutine(ChangeReady(true));
+        caster = null;
     }
 
 
@@ -90,14 +100,15 @@ public class Orb : NetworkBehaviour
 
     public void Trigger(Collider2D col) //called by Explosion
     {
-        if (redCaster == null) return;
+        if (color != Player.AbilityColor.red) return;
+        if (caster == null) return;
         if (!col.CompareTag("Orb")) return;
 
         Orb orb = col.GetComponent<Orb>();
 
         if (!orb.ready) return; //red can't pick up destined orbs (check here and on server)
 
-        RedPickupServerRpc(redCaster, orb);
+        RedPickupServerRpc(caster, orb);
     }
 
     [ServerRpc (RequireOwnership = false)]
