@@ -1,12 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyAIInput : MonoBehaviour
 {
-    private readonly bool debugMode = false; //switch to true for AI logic debugging
-
+    private readonly bool debugMode = true; //switch to true for AI logic debugging
 
 
     [SerializeField] private InputRelay inputRelay;
@@ -21,7 +19,6 @@ public class EnemyAIInput : MonoBehaviour
     {
         Player.AbilityColor.red, Player.AbilityColor.blue, Player.AbilityColor.yellow, Player.AbilityColor.green
     };
-
 
     private void OnEnable()
     {
@@ -53,7 +50,7 @@ public class EnemyAIInput : MonoBehaviour
     }
     private IEnumerator AbilityTimer()
     {
-        while (true)
+        while (!PlayerInput.stunned)
         {
             ChooseAbilityColor();
             yield return new WaitForSeconds(abilitySpeed);
@@ -65,7 +62,7 @@ public class EnemyAIInput : MonoBehaviour
     //choose which color ability to use
     private void ChooseAbilityColor()
     {
-        if (debugMode) Debug.Log("choosing color");
+        if (debugMode) Debug.Log("--NEW ACTION--");
 
         //check to see which colors are available to use
         bool anyReadyOrbsInScene = false;
@@ -226,7 +223,7 @@ public class EnemyAIInput : MonoBehaviour
         if (redOrBlue && availableOrbsToGet.Count == 0)
         {
             if (debugMode) Debug.Log("Using red/blue and no orbs are available to target");
-            inputRelay.InputRelayServerRpc(chosenColor, SmartTarget());
+            inputRelay.InputRelayServerRpc(chosenColor, SmartTarget(chosenColor == Player.AbilityColor.red));
             return;
         }
 
@@ -234,7 +231,7 @@ public class EnemyAIInput : MonoBehaviour
         if (chosenColor == Player.AbilityColor.blue && Random.Range(0, 3) == 0)
         {
             if (debugMode) Debug.Log("Moving blue without prioritizing");
-            inputRelay.InputRelayServerRpc(chosenColor, SmartTarget());
+            inputRelay.InputRelayServerRpc(chosenColor, SmartTarget(false));
             return;
         }
 
@@ -273,7 +270,7 @@ public class EnemyAIInput : MonoBehaviour
         ChooseTarget(chosenColor, availableOrbsToGet, prioritizedColor);
     }
 
-    private Vector2 SmartTarget()
+    private Vector2 SmartTarget(bool red)
     {
         //get 8 random positions between medium and max range towards player if far from player, away from player if close to player
         int numberOfPositions = 8;
@@ -293,19 +290,26 @@ public class EnemyAIInput : MonoBehaviour
                 randomDirection *= -1;
 
             float distance = Random.Range(StaticLibrary.redBlueRange / 2, StaticLibrary.redBlueRange);
+
+            //if red, return the first random direction found (no need to check for safety)
+            if (red)
+                return randomDirection * distance;
+
             randomPositions.Add(randomDirection * distance);
         }
-
-
 
         //check whether the path toward each direction is safe from dangerous orbs
 
             //check all but the last position for safety
         for (int i = 0; i < numberOfPositions - 1; i++)
             if (CheckPathIsSafe(randomPositions[i]))
+            {
+                if (debugMode) Debug.Log("Found safe path!");
                 return randomPositions[i];
+            }
 
-            //return the last position no matter what
+        //return the last position no matter what
+        if (debugMode) Debug.Log("No safe path found");
         return randomPositions[numberOfPositions - 1];
     }
 
@@ -317,7 +321,7 @@ public class EnemyAIInput : MonoBehaviour
 
         List<Orb> dangerousOrbs = new();
         foreach (Orb orb in orbs)
-            if (!orb.ready)
+            if (orb.transform.position.x > -14 && !orb.ready) //orbs not in play remain at (-15, 0)
                 dangerousOrbs.Add(orb);
 
         foreach (Orb dangerousOrb in dangerousOrbs)
@@ -362,9 +366,10 @@ public class EnemyAIInput : MonoBehaviour
         //if any possibleTargets are safe, remove all unsafe orbs from possibleTargets
         List<Orb> safePossibleTargets = new();
         foreach (Orb orb in possibleTargets)
-            if (CheckPathIsSafe(orb.transform.position))
+            if (chosenColor == Player.AbilityColor.red || CheckPathIsSafe(orb.transform.position))
                 safePossibleTargets.Add(orb);
 
+        if (debugMode) Debug.Log(safePossibleTargets.Count + " safe possibleTargets found");
         if (safePossibleTargets.Count > 0)
             possibleTargets = safePossibleTargets;
 
@@ -374,13 +379,14 @@ public class EnemyAIInput : MonoBehaviour
             if (orb.color == prioritizedColor)
                 prioritizedPossibleTargets.Add(orb);
 
+        if (debugMode) Debug.Log(prioritizedPossibleTargets.Count + " prioritized possibleTargets found");
         if (prioritizedPossibleTargets.Count > 0)
             possibleTargets = prioritizedPossibleTargets;
         
         //if only 1 possible target, target it
         if (possibleTargets.Count == 1)
         {
-            if (debugMode) Debug.Log("Targeting the only possible target of the prioritized color");
+            if (debugMode) Debug.Log("Targeting the only possible target");
             inputRelay.InputRelayServerRpc(chosenColor, possibleTargets[0].transform.position, possibleTargets[0]);
             return;
         }
@@ -395,12 +401,12 @@ public class EnemyAIInput : MonoBehaviour
         Orb targetedOrb;
         if (chosenColor == Player.AbilityColor.red || chosenColor == Player.AbilityColor.blue)
         {
-            if (debugMode) Debug.Log("Targeting the farthest possible target of the prioritized color");
+            if (debugMode) Debug.Log("Targeting the farthest possible target");
             targetedOrb = farthestOrb;
         }
         else
         {
-            if (debugMode) Debug.Log("Targeting the closest possible target of the prioritized color");
+            if (debugMode) Debug.Log("Targeting the closest possible target");
             targetedOrb = closestOrb;
         }
 

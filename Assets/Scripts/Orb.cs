@@ -24,7 +24,7 @@ public class Orb : NetworkBehaviour
     public bool enemyAIReady { get; private set; } //true if enemyAI can attempt to get this orb
 
     //enemyAI gives humanPlayers a chance to target orbs before targeting them
-    private readonly float graceTime;
+    private readonly float graceTime = .5f;
 
     public override void OnNetworkSpawn()
     {
@@ -62,8 +62,7 @@ public class Orb : NetworkBehaviour
         //give humanPlayers a chance to target orb before enemyAI can
         yield return new WaitForSeconds(graceTime);
 
-        if (ready)
-            enemyAIReady = true;
+        enemyAIReady = ready;
     }
 
     public void Disappear()
