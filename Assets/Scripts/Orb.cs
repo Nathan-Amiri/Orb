@@ -20,8 +20,8 @@ public class Orb : NetworkBehaviour
 
     public Player.AbilityColor color;
 
-    public bool ready { get; private set; }
-    public bool enemyAIReady { get; private set; }
+    public bool ready { get; private set; } //true if orb can be 'gotten'
+    public bool enemyAIReady { get; private set; } //true if enemyAI can attempt to get this orb
 
     //enemyAI gives humanPlayers a chance to target orbs before targeting them
     private readonly float graceTime;

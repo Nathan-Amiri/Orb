@@ -33,8 +33,6 @@ public class Explosion : NetworkBehaviour
         if (!col.CompareTag("Player")) return;
         Player triggeredPlayer = col.GetComponent<Player>();
         if (triggeredPlayer == orb.caster) return;
-        if (triggeredPlayer.isEnemyAI) return;
-
 
         PlayerInput.stunned = true; //set on server so that InputRelay is informed immediately
         EndGameClientRpc(col.GetComponent<Player>());
@@ -45,9 +43,9 @@ public class Explosion : NetworkBehaviour
     {
         Player loser = GetFromReference.GetPlayer(loserReference);
 
-        //if (Setup.CurrentGameMode == Setup.GameMode.challenge)
-        //    EndGame?.Invoke(loser.isEnemyAI);
-        //else versus
+        if (Setup.CurrentGameMode == Setup.GameMode.challenge)
+            EndGame?.Invoke(loser.isEnemyAI);
+        else //versus
             EndGame?.Invoke(!loser.IsOwner);
     }
 }

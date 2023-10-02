@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyAIInput : MonoBehaviour
 {
-    private readonly bool debugMode; //for AI logic debugging
+    private readonly bool debugMode = false; //switch to true for AI logic debugging
 
 
 
@@ -124,36 +125,40 @@ public class EnemyAIInput : MonoBehaviour
             return;
         }
 
-        ////else if in danger, choose yellow if available, else blue, else green
-        //bool isInDanger = false;
-        //foreach (Orb orb in orbs)
-        //{
-        //    bool isInExplosionRange = Vector2.Distance(orb.transform.position, transform.position) <= StaticLibrary.playerRadius + StaticLibrary.explosionRadius;
-        //    if (isInExplosionRange && !orb.enemyAIReady)
-        //    {
-        //        isInDanger = true;
-        //        break;
-        //    }
-        //}
-        //if (isInDanger)
-        //{
-        //    if (debugMode) Debug.Log("in danger!");
-        //    if (yellowAvailable)
-        //    {
-        //        PrioritizeColor(Player.AbilityColor.yellow, greenAvailable);
-        //        return;
-        //    }
-        //    else if (blueAvailable)
-        //    {
-        //        PrioritizeColor(Player.AbilityColor.blue, greenAvailable);
-        //        return;
-        //    }
-        //    else //since there's more than one available, green (and red) must be available
-        //    {
-        //        PrioritizeColor(Player.AbilityColor.green, greenAvailable);
-        //        return;
-        //    }
-        //}
+        //else if in danger, choose yellow if available, else blue, else green
+        bool isInDanger = false;
+        foreach (Orb orb in orbs)
+        {
+            if (orb.ready) continue;
+
+            //if in explosion range
+            if (Vector2.Distance(orb.transform.position, transform.position) <= StaticLibrary.playerRadius + StaticLibrary.explosionRadius)
+            {
+                isInDanger = true;
+                break;
+            }
+        }
+
+        if (isInDanger)
+        {
+            if (debugMode) Debug.Log("in danger!");
+
+            if (yellowAvailable)
+            {
+                PrioritizeColor(Player.AbilityColor.yellow, greenAvailable);
+                return;
+            }
+            else if (blueAvailable)
+            {
+                PrioritizeColor(Player.AbilityColor.blue, greenAvailable);
+                return;
+            }
+            else //since there's more than one available, green (and red) must be available
+            {
+                PrioritizeColor(Player.AbilityColor.green, greenAvailable);
+                return;
+            }
+        }
 
         //else if red available and player is in range, fire red
         float maxFireRange = StaticLibrary.redBlueRange + StaticLibrary.playerRadius + StaticLibrary.explosionRadius;
@@ -167,7 +172,7 @@ public class EnemyAIInput : MonoBehaviour
         //else if has two of at least one available color, randomly choose one of those colors
         List<Player.AbilityColor> maxedOutColors = new();
 
-            //red and blue are always available if their count is greater than 0
+            //no need to check redAvailable/blueAvailable since red and blue are always available if their count is greater than 0
         if (player.redOrbs.Count == 2) maxedOutColors.Add(Player.AbilityColor.red);
         if (player.blueOrbs.Count == 2) maxedOutColors.Add(Player.AbilityColor.blue);
         if (player.yellowOrbs.Count == 2 && yellowAvailable) maxedOutColors.Add(Player.AbilityColor.yellow);
@@ -270,31 +275,107 @@ public class EnemyAIInput : MonoBehaviour
 
     private Vector2 SmartTarget()
     {
-        //returns random position between medium and max range towards player if far from player, away from player if close to player
+        //get 8 random positions between medium and max range towards player if far from player, away from player if close to player
+        int numberOfPositions = 8;
 
-        Vector2 randomDirection = Random.insideUnitCircle.normalized;
-        Vector2 humanPlayerDirection = (humanPlayer.position - transform.position).normalized;
-        bool directionIsTowardHumanPlayer = Vector2.Angle(randomDirection, humanPlayerDirection) < 90;
+        List<Vector2> randomPositions = new();
 
         bool closeToHumanPlayer = Vector2.Distance(transform.position, humanPlayer.position) < StaticLibrary.redBlueRange;
 
-        if (directionIsTowardHumanPlayer == closeToHumanPlayer) //conditions should be opposite
-            randomDirection *= -1;
+        Vector2 humanPlayerDirection = (humanPlayer.position - transform.position).normalized;
+        for (int i = 0; i < numberOfPositions; i++)
+        {
+            Vector2 randomDirection = Random.insideUnitCircle.normalized;
+
+            bool directionIsTowardHumanPlayer = Vector2.Angle(randomDirection, humanPlayerDirection) < 90;
+
+            if (closeToHumanPlayer == directionIsTowardHumanPlayer) //conditions should be opposite
+                randomDirection *= -1;
+
+            float distance = Random.Range(StaticLibrary.redBlueRange / 2, StaticLibrary.redBlueRange);
+            randomPositions.Add(randomDirection * distance);
+        }
 
 
-        float distance = Random.Range(StaticLibrary.redBlueRange / 2, StaticLibrary.redBlueRange);
 
-        return randomDirection * distance;
+        //check whether the path toward each direction is safe from dangerous orbs
+
+            //check all but the last position for safety
+        for (int i = 0; i < numberOfPositions - 1; i++)
+            if (CheckPathIsSafe(randomPositions[i]))
+                return randomPositions[i];
+
+            //return the last position no matter what
+        return randomPositions[numberOfPositions - 1];
+    }
+
+    private bool CheckPathIsSafe(Vector2 pathDestination)
+    {
+        //check whether the path toward the destination is currently safe from dangerous orbs
+
+        float safeDistance = StaticLibrary.playerRadius + StaticLibrary.explosionRadius;
+
+        List<Orb> dangerousOrbs = new();
+        foreach (Orb orb in orbs)
+            if (!orb.ready)
+                dangerousOrbs.Add(orb);
+
+        foreach (Orb dangerousOrb in dangerousOrbs)
+        {
+            //if the distance to the orb is greater than the distance to the position being checked, path is safe so long as the orb
+            //is a safe distance away from the position being checked.
+
+            float distanceToOrb = Vector2.Distance(transform.position, dangerousOrb.transform.position);
+            float distanceToPosition = Vector2.Distance(transform.position, pathDestination);
+
+            if (distanceToOrb > distanceToPosition)
+            {
+                if (safeDistance > Vector2.Distance(pathDestination, dangerousOrb.transform.position))
+                    continue; //orb is a safe distance away
+                else
+                    return false;
+            }
+
+            //else, find the point along path closest to the orb and check whether it's a safe distance away from the orb
+
+            //theta = angle between random direction and direction to dangerous orb
+            float theta = Vector2.Angle(pathDestination, dangerousOrb.transform.position - transform.position);
+
+            //hypotenuse = distance from orb
+            float hypotenuse = Vector2.Distance(dangerousOrb.transform.position, transform.position);
+
+            //opposite (distance from orb from the closest point on the path to the orb) = hypotenuse * sin(theta)
+            float opposite = hypotenuse * Mathf.Sin(theta);
+
+            if (safeDistance > opposite)
+                continue; //orb is a safe distance away
+            else
+                return false;
+        }
+
+        return true;
     }
 
     //if attempting to get an orb, decide which orb to attempt to get
-    private void ChooseTarget(Player.AbilityColor chosenColor, List<Orb> availablOrbsToGet, Player.AbilityColor prioritizedColor)
+    private void ChooseTarget(Player.AbilityColor chosenColor, List<Orb> possibleTargets, Player.AbilityColor prioritizedColor)
     {
-        //get possible targets
-        List<Orb> possibleTargets = new();
-        foreach (Orb orb in availablOrbsToGet)
+        //if any possibleTargets are safe, remove all unsafe orbs from possibleTargets
+        List<Orb> safePossibleTargets = new();
+        foreach (Orb orb in possibleTargets)
+            if (CheckPathIsSafe(orb.transform.position))
+                safePossibleTargets.Add(orb);
+
+        if (safePossibleTargets.Count > 0)
+            possibleTargets = safePossibleTargets;
+
+        //if any possibleTargets are the prioritized color, remove all differently colored orbs from possibleTargets
+        List<Orb> prioritizedPossibleTargets = new();
+        foreach (Orb orb in possibleTargets)
             if (orb.color == prioritizedColor)
-                possibleTargets.Add(orb);
+                prioritizedPossibleTargets.Add(orb);
+
+        if (prioritizedPossibleTargets.Count > 0)
+            possibleTargets = prioritizedPossibleTargets;
         
         //if only 1 possible target, target it
         if (possibleTargets.Count == 1)
@@ -310,7 +391,7 @@ public class EnemyAIInput : MonoBehaviour
         Orb closestOrb = distance0 < distance1 ? possibleTargets[0] : possibleTargets[1];
         Orb farthestOrb = closestOrb == possibleTargets[0] ? possibleTargets[1] : possibleTargets[0];
 
-        //if If red or blue, target the farthest orb. If green or yellow, target the closest orb
+        //if red or blue, target the farthest orb. If green or yellow, target the closest orb
         Orb targetedOrb;
         if (chosenColor == Player.AbilityColor.red || chosenColor == Player.AbilityColor.blue)
         {
