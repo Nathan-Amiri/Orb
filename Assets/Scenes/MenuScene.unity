@@ -414,8 +414,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 20}
-  m_SizeDelta: {x: 1100, y: 850}
+  m_AnchoredPosition: {x: 0, y: 40}
+  m_SizeDelta: {x: 1650, y: 900}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &15208223
 MonoBehaviour:
@@ -1941,8 +1941,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 20}
-  m_SizeDelta: {x: 1000, y: 300}
+  m_AnchoredPosition: {x: 0, y: 40}
+  m_SizeDelta: {x: 1550, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &879001690
 MonoBehaviour:
@@ -1964,26 +1964,40 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'If you collide with an orb that''s ready, collect it, removing it from
-    the battlefield
+  m_text: 'Use WASD to spawn orbs you have collected onto the battlefield.
 
-    Different orbs can be used with different effects. After
-    an orb is fired, it explodes, damaging enemies. When the explosion finishes,
-    the orb becomes ready.
+    Use
+    your cursor to aim/target.
+
+    After an orb is spawned, it explodes, killing
+    nearby enemy players.
+
+    When the explosion finishes, the orb becomes ready.
+
+    If
+    you collide with an orb that''s ready, collect it, removing it from the battlefield.
 
 
-    W = if you have a red orb, fire it and collect any
-    orbs it touches.
+    Controls:
 
-    S = if you have a blue orb, dash away and leave the blue
-    orb behind
+    <color=red>W:
+    If you have a red orb, spawn it and launch it in the aimed direction, collecting
+    any orbs it or its explosion touches.
 
-    A = if you have a yellow orb and are targeting an orb that''s
-    ready, dash to the targeted orb and leave the yellow orb behind
+    <color=blue>S: If you have a blue
+    orb, spawn it at your current position and dash in the aimed direction.
 
-    D = if you
-    have a green orb and are targeting an orb that''s ready, pull the the targeted
-    orb to you and leave the green orb in its place'
+    <color=yellow>A:
+    If you have a yellow orb and are targeting an orb that''s ready, spawn the yellow
+    orb at your current position and dash to the targeted orb.
+
+    <color=green>D:
+    If you have a green orb and are targeting an orb that''s ready, pull the the
+    targeted orb to you and spawn the green orb in its place.
+
+    <color=purple>If
+    you don''t have any orbs, you''ll turn purple. If you target an orb that''s ready
+    and press any WASD key, pull the targeted orb to you.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
