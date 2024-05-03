@@ -1,4 +1,4 @@
-Orb is a simple PvP game created to learn and practice Unity's Lobby and Relay systems, as well as Unity's new networking solution: Netcode for Gameobjects.
+Orb is a simple PvP game created to learn and practice Unity's Lobby, Relay, and Netcode for Gameobjects systems
 
 Created in Unity and coded in Visual Studio 2022
 
