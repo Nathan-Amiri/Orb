@@ -15,4 +15,4 @@ This data is relayed in the following direction:
 Input data: PlayerInput OR EnemyAIInput > InputRelay > Player
 Sensor data: PlayerSensor > SensorRelay > Player
 
-EnemyAIs are identical to Players, except that they contain an EnemyAIInput script rather than a PlayerInput script
+EnemyAI objects are identical to Player objects, except that they contain an EnemyAIInput component rather than a PlayerInput component. Their behavior is governed by this EnemyAIInput class
